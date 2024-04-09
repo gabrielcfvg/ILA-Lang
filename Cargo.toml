@@ -1,0 +1,10 @@
+[package]
+name = "ILA-Lang"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.81"
+slotmap = "1.0.7"
+tree-sitter = ">=0.22.2"
+tree-sitter-ila-lang = { path = "tree-sitter-ila-lang" }

@@ -1,0 +1,12 @@
+/target/
+/.vscode/
+
+# tree sitter library
+/tree-sitter-ila-lang/setup.py
+/tree-sitter-ila-lang/pyproject.toml
+/tree-sitter-ila-lang/Package.swift
+/tree-sitter-ila-lang/package.json
+/tree-sitter-ila-lang/Makefile
+/tree-sitter-ila-lang/binding.gyp
+/tree-sitter-ila-lang/bindings/*
+!/tree-sitter-ila-lang/bindings/rust/

@@ -4,12 +4,20 @@ use std::collections::HashMap;
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct NodeID { id: usize }
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct ScopeDefID(NodeID);
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct StmtID(NodeID);
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct ExprID(NodeID);
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct TypeExprID(NodeID);
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct IdentifierID(NodeID);
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct FunctionParamID(NodeID);
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub struct ForEachDeclID(NodeID);
 
 
 pub struct Ast {
@@ -78,6 +86,11 @@ impl Ast {
         return FunctionParamID(id);
     }
 
+    pub fn add_for_each_decl_node(&mut self, for_each_decl: ForEachDecl, lexical_info: LexicalInfo) -> ForEachDeclID {
+        let id = self.add_node(Node::ForEachDecl(for_each_decl), lexical_info);
+        return ForEachDeclID(id);
+    }
+
 
     pub fn set_program(&mut self, program: Program) {
         self.program = Some(program);
@@ -133,6 +146,13 @@ impl Ast {
             _ => panic!("FunctionParamID does not point to a FunctionParam node"),
         }
     }
+
+    pub fn get_for_each_decl(&self, id: ForEachDeclID) -> &ForEachDecl {
+        return match self.get_node(id.0) {
+            Node::ForEachDecl(for_each_decl) => for_each_decl,
+            _ => panic!("NodeID does not point to a ForEachDecl node"),
+        }
+    }
 }
 
 
@@ -152,13 +172,14 @@ pub struct Program {
     pub global_defs: Vec<ScopeDefID>,
 }
 
-enum Node {
+pub enum Node {
     ScopeDef(ScopeDef),
     Statement(Statement),
     Expression(Expression),
     TypeExpr(TypeExpr),
     Identifier(String),
     FunctionParam(FunctionParam),
+    ForEachDecl(ForEachDecl),
 }
 
 pub enum ScopeDef {
@@ -170,7 +191,7 @@ pub enum Statement {
     VarDecl{is_mut: bool, name: IdentifierID, type_expr: TypeExprID, init_expr: Option<ExprID>},
     If{cond_expr: ExprID, then_block: Vec<StmtID>, else_body: Option<Vec<StmtID>>},
     While{cond_expr: ExprID, body_block: Vec<StmtID>},
-    ForEach{is_var_mut: bool, is_var_ref: bool, var_name: NodeID, iter_expr: ExprID, body_block: Vec<StmtID>},
+    ForEach{item: ForEachDeclID, iter_expr: ExprID, body_block: Vec<StmtID>},
     Return{expr: Option<ExprID>},
     Continue,
     Break,
@@ -184,7 +205,7 @@ pub enum Expression {
     ListLiteral{values: Vec<ExprID>},
     Identifier{node_id: IdentifierID},
     Call{callee: ExprID, args: Vec<ExprID>},
-    Access{object: ExprID, field_name: NodeID},
+    Access{object: ExprID, field_name: IdentifierID},
     BinaryOprt{oprt: BinaryOprt, left: ExprID, right: ExprID},
     UnaryOprt{oprt: UnaryOprt, operand: ExprID},
     Assign{target: ExprID, value: ExprID},
@@ -205,18 +226,11 @@ pub enum UnaryOprt {
 }
 
 pub enum BinaryOprt {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    And,
-    Or,
-    Eq,
-    Neq,
-    Lt,
-    Gt,
-    Le,
-    Ge,
+    Assign,
+    And, Or,
+    Eq, Neq,
+    Lt, Le, Gt, Ge,
+    Add, Sub, Mul, Div
 }
 
 
@@ -224,4 +238,10 @@ pub struct FunctionParam {
     pub is_mut: bool,
     pub name: IdentifierID,
     pub type_expr: TypeExprID,
+}
+
+pub struct ForEachDecl {
+    pub is_mut: bool,
+    pub is_ref: bool,
+    pub name: IdentifierID,
 }

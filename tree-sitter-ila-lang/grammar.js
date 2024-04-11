@@ -105,6 +105,7 @@ module.exports = grammar({
             $.unary_expr,
             $.access_expr,
             $.call_expr,
+            $.parem_expr,
             $._value_expr,
         ),
 
@@ -125,9 +126,9 @@ module.exports = grammar({
         ),
 
         unary_expr: $ => prec(1102, choice(
-            seq(field('oprt', '*'), field('rhs', $._expression)),
-            seq(field('oprt', 'não'), field('rhs', $._expression)),
-            seq(field('oprt', '-'), field('rhs', $._expression)),
+            seq(field('oprt', '*'), field('value', $._expression)),
+            seq(field('oprt', 'não'), field('value', $._expression)),
+            seq(field('oprt', '-'), field('value', $._expression)),
         )),
 
         access_expr: $ => prec.right(1201, seq(
@@ -139,7 +140,7 @@ module.exports = grammar({
         call_expr: $ => prec(1201, seq(
             field('function', $._expression),
             '(',
-            field('arg', optional(seq($._expression, repeat(seq(',', $._expression))))),
+            optional(seq(field('arg', $._expression), repeat(seq(',', field('arg', $._expression))))),
             ')',
         )),
 
@@ -149,7 +150,7 @@ module.exports = grammar({
             $.parem_expr,
         )),
 
-        parem_expr: $ => seq('(', $._expression, ')'),
+        parem_expr: $ => seq('(', field('expression', $._expression), ')'),
 
         _literal: $ => choice(
             $.decimal,
@@ -159,11 +160,11 @@ module.exports = grammar({
             $.list,
         ),
 
-        integer: $ => /-?[0-9]+/,
-        decimal: $ => prec(2000, seq(field("integer", $.integer), '.', field("fraction", /[0-9]+/))),
-        string: $ => seq('"', /[^"]*/, '"'),
-        boolean: $ => choice('verdadeiro', 'falso'),
-        list: $ => seq('[', optional(seq($._expression, repeat(seq(',', $._expression)))), ']'),
+        integer: $ => field('value', $.integer_literal),
+        decimal: $ => prec(2000, seq(field('integer', choice($.integer_literal, $.fractional_literal)), '.', field('fraction', choice($.integer_literal, $.fractional_literal)))),
+        string: $ => seq('"', field('content', $.string_content), '"'),
+        boolean: $ => field('value', choice('verdadeiro', 'falso')),
+        list: $ => seq('[', optional(seq(field('item', $._expression), repeat(seq(',', field('item', $._expression))))), ']'),
 
 
         _type: $ => choice(
@@ -185,6 +186,12 @@ module.exports = grammar({
         comp_type: $ => seq(field('is_mut', optional('mut')), 'comp', field('type', $._type)),
 
 
+        integer_literal: $ => token(seq(
+            optional('-'),
+            /([1-9][0-9]*)|0/
+        )),
+        fractional_literal: $ => token(/[0-9]+/),
+        string_content: $ => token(/[^"]*/),
         identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
     },
 
